@@ -1,0 +1,46 @@
+# 依赖
+node_modules/
+.pnp
+.pnp.js
+
+# 构建输出
+dist/
+dist-ssr/
+*.local
+
+# 环境变量
+.env
+.env.local
+.env.*.local
+
+# 日志
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# 编辑器
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 测试
+coverage/
+
+# 数据库
+drizzle/*.sql
+*.db
+
+# 上传文件
+uploads/*
+!uploads/.gitkeep
+
+# 操作系统
+.DS_Store
+Thumbs.db
