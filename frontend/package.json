@@ -3,9 +3,12 @@
 	"private": true,
 	"version": "0.0.0",
 	"type": "module",
+	"engines": {
+		"node": ">=18.0.0"
+	},
 	"scripts": {
 		"dev": "vite",
-		"build": "tsc && vite build",
+		"build": "npx tsc --noEmit && vite build",
 		"preview": "vite preview",
 		"test": "vitest",
 		"lint": "eslint . --ext ts,tsx"
