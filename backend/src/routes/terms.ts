@@ -2,6 +2,8 @@ import { Router } from 'express'
 import { eq } from 'drizzle-orm'
 import { db } from '../models/db.js'
 import { terms } from '../models/schema.js'
+import { validateBody } from '../middleware/security.js'
+import { createTermSchema, updateTermSchema, batchTermsSchema, uuidSchema } from '../utils/validation.js'
 
 const router = Router()
 
@@ -13,13 +15,20 @@ router.get('/', async (req, res, next) => {
 	try {
 		const { cardId } = req.query
 
-		if (!cardId) {
+		if (!cardId || typeof cardId !== 'string') {
 			res.status(400).json({ error: '缺少参数: cardId' })
 			return
 		}
 
+		// 验证 UUID
+		const parseResult = uuidSchema.safeParse(cardId)
+		if (!parseResult.success) {
+			res.status(400).json({ error: '无效的 cardId 格式' })
+			return
+		}
+
 		const result = await db.query.terms.findMany({
-			where: eq(terms.cardId, cardId as string),
+			where: eq(terms.cardId, cardId),
 			orderBy: (terms, { asc }) => [asc(terms.orderIndex)],
 		})
 
@@ -33,78 +42,88 @@ router.get('/', async (req, res, next) => {
  * 创建术语
  * POST /api/terms
  */
-router.post('/', async (req, res, next) => {
-	try {
-		const { cardId, text, isAiGenerated } = req.body
+router.post(
+	'/',
+	validateBody(createTermSchema),
+	async (req, res, next) => {
+		try {
+			const { cardId, text, isAiGenerated } = req.body
 
-		if (!cardId || !text) {
-			res.status(400).json({ error: '缺少必要参数: cardId, text' })
-			return
+			const [term] = await db.insert(terms).values({
+				cardId,
+				text,
+				isAiGenerated: isAiGenerated ?? false,
+			}).returning()
+
+			res.status(201).json(term)
+		} catch (err) {
+			next(err)
 		}
-
-		const [term] = await db.insert(terms).values({
-			cardId,
-			text,
-			isAiGenerated: isAiGenerated ?? false,
-		}).returning()
-
-		res.status(201).json(term)
-	} catch (err) {
-		next(err)
 	}
-})
+)
 
 /**
  * 批量创建术语（AI生成结果）
  * POST /api/terms/batch
  */
-router.post('/batch', async (req, res, next) => {
-	try {
-		const { cardId, termList } = req.body
+router.post(
+	'/batch',
+	validateBody(batchTermsSchema),
+	async (req, res, next) => {
+		try {
+			const { cardId, termList } = req.body
 
-		if (!cardId || !Array.isArray(termList)) {
-			res.status(400).json({ error: '缺少必要参数: cardId, termList' })
-			return
+			const values = termList.map((text: string, index: number) => ({
+				cardId,
+				text,
+				isAiGenerated: true,
+				orderIndex: index,
+			}))
+
+			const result = await db.insert(terms).values(values).returning()
+			res.status(201).json(result)
+		} catch (err) {
+			next(err)
 		}
-
-		const values = termList.map((text: string, index: number) => ({
-			cardId,
-			text,
-			isAiGenerated: true,
-			orderIndex: index,
-		}))
-
-		const result = await db.insert(terms).values(values).returning()
-		res.status(201).json(result)
-	} catch (err) {
-		next(err)
 	}
-})
+)
 
 /**
  * 更新术语
  * PUT /api/terms/:id
  */
-router.put('/:id', async (req, res, next) => {
-	try {
-		const { text } = req.body
+router.put(
+	'/:id',
+	validateBody(updateTermSchema),
+	async (req, res, next) => {
+		try {
+			const { text } = req.body
+			const { id } = req.params
 
-		if (!text) {
-			res.status(400).json({ error: '缺少参数: text' })
-			return
+			// 验证 UUID
+			const parseResult = uuidSchema.safeParse(id)
+			if (!parseResult.success) {
+				res.status(400).json({ error: '无效的术语 ID 格式' })
+				return
+			}
+
+			const [term] = await db
+				.update(terms)
+				.set({ text })
+				.where(eq(terms.id, id))
+				.returning()
+
+			if (!term) {
+				res.status(404).json({ error: '术语不存在' })
+				return
+			}
+
+			res.json(term)
+		} catch (err) {
+			next(err)
 		}
-
-		const [term] = await db
-			.update(terms)
-			.set({ text })
-			.where(eq(terms.id, req.params.id))
-			.returning()
-
-		res.json(term)
-	} catch (err) {
-		next(err)
 	}
-})
+)
 
 /**
  * 删除术语
@@ -112,7 +131,22 @@ router.put('/:id', async (req, res, next) => {
  */
 router.delete('/:id', async (req, res, next) => {
 	try {
-		await db.delete(terms).where(eq(terms.id, req.params.id))
+		const { id } = req.params
+
+		// 验证 UUID
+		const parseResult = uuidSchema.safeParse(id)
+		if (!parseResult.success) {
+			res.status(400).json({ error: '无效的术语 ID 格式' })
+			return
+		}
+
+		const result = await db.delete(terms).where(eq(terms.id, id)).returning()
+
+		if (result.length === 0) {
+			res.status(404).json({ error: '术语不存在' })
+			return
+		}
+
 		res.status(204).send()
 	} catch (err) {
 		next(err)
