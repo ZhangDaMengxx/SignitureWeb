@@ -1,6 +1,8 @@
-# 设计术语灵感剪切板
+# 设计术语灵感剪切板 ✨
 
 一个自动生成设计术语的灵感剪切板应用，采用按周组织的手账式界面。
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ZhangDaMengxx/SignitureWeb)
 
 ## 功能特性
 
@@ -18,88 +20,98 @@
 - Vite
 - Tailwind CSS
 - Framer Motion
-- shadcn/ui 组件
 
 ### 后端
 - Node.js + Express
 - PostgreSQL + Drizzle ORM
-- Multer (文件上传)
-
-### AI
 - Google Gemini API
 
 ## 快速开始
 
-### 前置要求
-- Node.js >= 18
-- PostgreSQL >= 14
-
-### 安装
-
+### 1. 克隆项目
 ```bash
-# 1. 克隆项目
-git clone <repository>
+git clone https://github.com/ZhangDaMengxx/SignitureWeb.git
 cd SignitureWeb
-
-# 2. 安装前端依赖
-cd frontend
-npm install
-
-# 3. 安装后端依赖
-cd ../backend
-npm install
-
-# 4. 配置环境变量
-cp .env.example .env
-# 编辑 .env 文件，填入数据库和API配置
-
-# 5. 数据库迁移
-npm run db:push
 ```
 
-### 运行
-
+### 2. 安装依赖
 ```bash
-# 后端（在 backend 目录）
+# 前端
+cd frontend && npm install
+
+# 后端
+cd ../backend && npm install
+```
+
+### 3. 配置环境变量
+```bash
+cp .env.example .env.local
+# 编辑 .env.local 填入你的配置
+```
+
+### 4. 初始化数据库
+```bash
+cd backend
+npx tsx src/scripts/initDb.ts
+```
+
+### 5. 运行
+```bash
+# 后端 (端口 3001)
 npm run dev
 
-# 前端（在 frontend 目录，新开终端）
-npm run dev
+# 前端 (端口 5173) - 新开终端
+cd ../frontend && npm run dev
 ```
 
-### 测试
+## Vercel 部署
 
-```bash
-# 前端测试
-npm run test
+详见 [DEPLOY.md](./DEPLOY.md)
 
-# 后端测试
-npm run test
-```
+快速部署步骤:
+1. Fork 本仓库
+2. 在 [Vercel](https://vercel.com) 导入项目
+3. 配置环境变量 (`DATABASE_URL`, `GEMINI_API_KEY`)
+4. 点击 Deploy
+
+## 文档
+
+- [API 文档](./API.md)
+- [使用指南](./USAGE.md)
+- [部署指南](./DEPLOY.md)
+- [项目日记](./PROJECT_DIARY.md)
 
 ## 项目结构
 
 ```
 SignitureWeb/
-├── frontend/          # React前端
+├── frontend/          # React 前端
 │   ├── src/
 │   │   ├── components/   # 组件
-│   │   ├── hooks/        # 自定义Hooks
-│   │   ├── lib/          # 工具函数
-│   │   └── types/        # TypeScript类型
+│   │   ├── hooks/        # 自定义 Hooks
+│   │   └── lib/          # 工具函数
 │   └── package.json
-├── backend/           # Express后端
+├── backend/           # Express 后端
 │   ├── src/
-│   │   ├── models/       # 数据库模型
-│   │   ├── routes/       # API路由
-│   │   └── middleware/   # 中间件
+│   │   ├── routes/       # API 路由
+│   │   ├── middleware/   # 中间件
+│   │   └── services/     # 服务
 │   └── package.json
+├── design-terminology-inspiration-board-skill/  # AI Skill
 └── README.md
 ```
 
 ## 开发进度
 
-详见 [PROJECT_DIARY.md](./PROJECT_DIARY.md)
+- [x] 项目初始化
+- [x] 数据库设计
+- [x] 核心功能开发
+- [x] UI/UX 精细化
+- [x] 安全加固
+- [x] 性能优化
+- [x] 部署配置
+
+当前进度: **100%**
 
 ## 许可证
 

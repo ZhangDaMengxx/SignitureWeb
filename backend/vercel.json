@@ -1,0 +1,27 @@
+{
+	"version": 2,
+	"name": "design-terminology-api",
+	"builds": [
+		{
+			"src": "src/index.ts",
+			"use": "@vercel/node"
+		}
+	],
+	"routes": [
+		{
+			"src": "/api/(.*)",
+			"dest": "src/index.ts"
+		},
+		{
+			"src": "/uploads/(.*)",
+			"dest": "/uploads/$1"
+		},
+		{
+			"src": "/(.*)",
+			"dest": "src/index.ts"
+		}
+	],
+	"env": {
+		"NODE_ENV": "production"
+	}
+}
