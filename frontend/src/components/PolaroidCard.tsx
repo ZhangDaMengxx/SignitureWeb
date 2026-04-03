@@ -16,6 +16,7 @@ const DECORATIONS: Decoration[] = ['tape', 'pin', 'clip', 'corner']
 
 /**
  * 获取随机装饰
+ * 设计意图: 每张卡片有独特的装饰组合
  */
 function getRandomDecorations(): Decoration[] {
 	const count = Math.floor(Math.random() * 2) + 1
@@ -30,6 +31,10 @@ function getRandomDecorations(): Decoration[] {
 export function PolaroidCard({ card }: PolaroidCardProps) {
 	const [decorations] = useState(getRandomDecorations)
 	const [rotation] = useState(() => (Math.random() - 0.5) * 6)
+	const [imageLoaded, setImageLoaded] = useState(false)
+	const [imageError, setImageError] = useState(false)
+
+	const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 	return (
 		<motion.div
@@ -60,12 +65,22 @@ export function PolaroidCard({ card }: PolaroidCardProps) {
 
 			{/* 图片区域 */}
 			<div className="aspect-square bg-amber-100 dark:bg-amber-200/50 
-				rounded overflow-hidden">
-				{card.imageUrl ? (
-					<img 
-						src={card.imageUrl} 
-						alt="灵感图片" 
-						className="w-full h-full object-cover"
+				rounded overflow-hidden relative">
+				{!imageLoaded && !imageError && (
+					<div className="absolute inset-0 flex items-center justify-center">
+						<div className="w-6 h-6 border-2 border-amber-300 
+							border-t-amber-500 rounded-full animate-spin" />
+					</div>
+				)}
+				
+				{card.imageUrl && !imageError ? (
+					<img
+						src={`${apiBase}${card.imageUrl}`}
+						alt="灵感图片"
+						className={`w-full h-full object-cover transition-opacity
+							${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+						onLoad={() => setImageLoaded(true)}
+						onError={() => setImageError(true)}
 					/>
 				) : (
 					<div className="w-full h-full flex items-center justify-center
@@ -77,7 +92,10 @@ export function PolaroidCard({ card }: PolaroidCardProps) {
 
 			{/* 术语标签 */}
 			<div className="mt-2">
-				<TermTags terms={card.terms} />
+				<TermTags 
+					cardId={card.id} 
+					initialTerms={card.terms} 
+				/>
 			</div>
 		</motion.div>
 	)

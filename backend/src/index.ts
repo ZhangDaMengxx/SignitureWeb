@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url'
 import { cardRoutes } from './routes/cards.js'
 import { weekRoutes } from './routes/weeks.js'
 import { termRoutes } from './routes/terms.js'
+import { aiRoutes } from './routes/ai.js'
 import { errorHandler } from './middleware/errorHandler.js'
 
 // 加载环境变量
@@ -65,6 +66,7 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
 app.use('/api/cards', cardRoutes)
 app.use('/api/weeks', weekRoutes)
 app.use('/api/terms', termRoutes)
+app.use('/api/ai', aiRoutes)
 
 /**
  * 健康检查

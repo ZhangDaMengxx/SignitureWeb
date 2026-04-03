@@ -1,23 +1,51 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { formatWeekRange, getWeekNumber } from '../lib/utils'
+import { weekApi } from '../lib/api'
 import { DayCell } from './DayCell'
 import { Notebook } from './Notebook'
-import type { DayOfWeek } from '../types'
+import type { DayOfWeek, Week } from '../types'
 
 const DAYS_ROW1: DayOfWeek[] = ['MON', 'TUE', 'WED']
 const DAYS_ROW2: DayOfWeek[] = ['THU', 'FRI', 'WEEKEND']
 
 /**
  * 周视图组件
- * 设计意图: 三行手账式布局，支持周导航
+ * 设计意图: 三行手账式布局，支持周导航和数据加载
  */
 export function WeekView() {
 	const [currentDate, setCurrentDate] = useState(new Date())
 	const [notebookHeight, setNotebookHeight] = useState(200)
+	const [week, setWeek] = useState<Week | null>(null)
+	const [loading, setLoading] = useState(false)
 
+	const year = currentDate.getFullYear()
 	const weekNumber = getWeekNumber(currentDate)
 	const weekRange = formatWeekRange(currentDate)
+
+	// 加载周数据
+	useEffect(() => {
+		const loadWeek = async () => {
+			setLoading(true)
+			try {
+				// 获取或创建周记录
+				const weekData = await weekApi.getByNumber(year, weekNumber)
+				setWeek(weekData)
+			} catch {
+				// 不存在则创建
+				try {
+					const newWeek = await weekApi.create(year, weekNumber)
+					setWeek(newWeek)
+				} catch (err) {
+					console.error('创建周失败:', err)
+				}
+			} finally {
+				setLoading(false)
+			}
+		}
+
+		loadWeek()
+	}, [year, weekNumber])
 
 	const prevWeek = () => {
 		const d = new Date(currentDate)
@@ -29,6 +57,22 @@ export function WeekView() {
 		const d = new Date(currentDate)
 		d.setDate(d.getDate() + 7)
 		setCurrentDate(d)
+	}
+
+	// 获取某天的卡片
+	const getCardsForDay = (day: DayOfWeek) => {
+		return week?.cards.filter(c => c.dayOfWeek === day) || []
+	}
+
+	// 刷新周数据
+	const refreshWeek = async () => {
+		if (!week) return
+		try {
+			const updated = await weekApi.getByNumber(year, weekNumber)
+			setWeek(updated)
+		} catch (err) {
+			console.error('刷新失败:', err)
+		}
 	}
 
 	return (
@@ -52,6 +96,9 @@ export function WeekView() {
 					<p className="text-amber-600 dark:text-amber-400 font-hand">
 						{weekRange}
 					</p>
+					{loading && (
+						<span className="text-xs text-amber-500">加载中...</span>
+					)}
 				</div>
 				
 				<button
@@ -69,14 +116,27 @@ export function WeekView() {
 				{/* 第一行: 周一/周二/周三 */}
 				<div className="grid grid-cols-3 gap-4">
 					{DAYS_ROW1.map(day => (
-						<DayCell key={day} day={day} />
+						<DayCell 
+							key={day} 
+							day={day} 
+							weekId={week?.id}
+							cards={getCardsForDay(day)}
+							onCardAdded={refreshWeek}
+						/>
 					))}
 				</div>
 
 				{/* 第二行: 周四/周五/周末 */}
 				<div className="grid grid-cols-3 gap-4">
 					{DAYS_ROW2.map(day => (
-						<DayCell key={day} day={day} isWeekend={day === 'WEEKEND'} />
+						<DayCell 
+							key={day} 
+							day={day} 
+							isWeekend={day === 'WEEKEND'}
+							weekId={week?.id}
+							cards={getCardsForDay(day)}
+							onCardAdded={refreshWeek}
+						/>
 					))}
 				</div>
 
