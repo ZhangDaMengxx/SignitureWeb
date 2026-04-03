@@ -3,7 +3,7 @@ import type { Week, Card, Term, DayOfWeek } from '../types'
 /**
  * API 基础配置
  */
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+const API_BASE = 'http://localhost:3000/api'
 
 /**
  * 通用请求封装
