@@ -155,12 +155,12 @@ export function Notebook({ height, onHeightChange }: NotebookProps) {
 						<div 
 							className="absolute inset-0 pointer-events-none opacity-30"
 							style={{
-								backgroundImage: 'repeating-linear-gradient(
+								backgroundImage: `repeating-linear-gradient(
 									transparent,
 									transparent 31px,
 									rgba(251, 191, 36, 0.3) 31px,
 									rgba(251, 191, 36, 0.3) 32px
-								)',
+								)`,
 								backgroundPosition: '0 8px'
 							}}
 						/>
